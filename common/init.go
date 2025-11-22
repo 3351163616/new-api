@@ -122,6 +122,11 @@ func initConstantEnv() {
 	constant.GenerateDefaultToken = GetEnvOrDefaultBool("GENERATE_DEFAULT_TOKEN", false)
 	// 是否启用错误日志
 	constant.ErrorLogEnabled = GetEnvOrDefaultBool("ERROR_LOG_ENABLED", false)
+	// ⚠️ 安全警告：是否使用明文密码存储（仅自用模式）
+	PlaintextPasswordEnabled = GetEnvOrDefaultBool("ENABLE_PLAINTEXT_PASSWORD", false)
+	if PlaintextPasswordEnabled {
+		SysLog("⚠️ 警告：明文密码存储已启用！这会带来安全风险，仅限自用模式使用！")
+	}
 
 	soraPatchStr := GetEnvOrDefaultString("TASK_PRICE_PATCH", "")
 	if soraPatchStr != "" {

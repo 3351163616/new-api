@@ -50,6 +50,10 @@ var TelegramOAuthEnabled = false
 var TurnstileCheckEnabled = false
 var RegisterEnabled = true
 
+// ⚠️ 安全警告：启用明文密码存储会带来严重的安全风险！
+// 仅在自用模式且数据库有严格防护措施时使用
+var PlaintextPasswordEnabled = true // 默认为 false，使用 bcrypt 加密
+
 var EmailDomainRestrictionEnabled = false // 是否启用邮箱域名限制
 var EmailAliasRestrictionEnabled = false  // 是否启用邮箱别名限制
 var EmailDomainWhitelist = []string{
