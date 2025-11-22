@@ -324,13 +324,17 @@ func HardDeleteUserById(id int) error {
 	return err
 }
 
+// inviteUser 处理邀请人的奖励
+// 支持正数（奖励）和负数（扣除，用于防止滥用）
 func inviteUser(inviterId int) (err error) {
 	user, err := GetUserById(inviterId, true)
 	if err != nil {
 		return err
 	}
 	user.AffCount++
+	// AffQuota: 当前可用的邀请奖励额度（可正可负）
 	user.AffQuota += common.QuotaForInviter
+	// AffHistoryQuota: 历史累计的邀请奖励额度（可正可负）
 	user.AffHistoryQuota += common.QuotaForInviter
 	return DB.Save(user).Error
 }
@@ -411,17 +415,33 @@ func (user *User) Insert(inviterId int) error {
 		}
 	}
 
-	if common.QuotaForNewUser > 0 {
-		RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("新用户注册赠送 %s", logger.LogQuota(common.QuotaForNewUser)))
-	}
-	if inviterId != 0 {
-		if common.QuotaForInvitee > 0 {
-			_ = IncreaseUserQuota(user.Id, common.QuotaForInvitee, true)
-			RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("使用邀请码赠送 %s", logger.LogQuota(common.QuotaForInvitee)))
+	// 新用户注册额度（支持负数以防止滥用）
+	if common.QuotaForNewUser != 0 {
+		if common.QuotaForNewUser > 0 {
+			RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("新用户注册赠送 %s", logger.LogQuota(common.QuotaForNewUser)))
+		} else {
+			RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("新用户注册扣除 %s", logger.LogQuota(-common.QuotaForNewUser)))
 		}
-		if common.QuotaForInviter > 0 {
-			//_ = IncreaseUserQuota(inviterId, common.QuotaForInviter)
-			RecordLog(inviterId, LogTypeSystem, fmt.Sprintf("邀请用户赠送 %s", logger.LogQuota(common.QuotaForInviter)))
+	}
+
+	// 邀请码相关额度（支持负数以防止滥用）
+	if inviterId != 0 {
+		// 被邀请人获得的额度
+		if common.QuotaForInvitee != 0 {
+			_ = DeltaUpdateUserQuota(user.Id, common.QuotaForInvitee)
+			if common.QuotaForInvitee > 0 {
+				RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("使用邀请码赠送 %s", logger.LogQuota(common.QuotaForInvitee)))
+			} else {
+				RecordLog(user.Id, LogTypeSystem, fmt.Sprintf("使用邀请码扣除 %s", logger.LogQuota(-common.QuotaForInvitee)))
+			}
+		}
+		// 邀请人获得的额度
+		if common.QuotaForInviter != 0 {
+			if common.QuotaForInviter > 0 {
+				RecordLog(inviterId, LogTypeSystem, fmt.Sprintf("邀请用户赠送 %s", logger.LogQuota(common.QuotaForInviter)))
+			} else {
+				RecordLog(inviterId, LogTypeSystem, fmt.Sprintf("邀请用户扣除 %s", logger.LogQuota(-common.QuotaForInviter)))
+			}
 			_ = inviteUser(inviterId)
 		}
 	}

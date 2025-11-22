@@ -102,8 +102,8 @@ export default function SettingsCreditLimit(props) {
                   label={t('新用户初始额度')}
                   field={'QuotaForNewUser'}
                   step={1}
-                  min={0}
                   suffix={'Token'}
+                  extraText={t('支持负数以防止滥用注册')}
                   placeholder={''}
                   onChange={(value) =>
                     setInputs({
@@ -135,10 +135,9 @@ export default function SettingsCreditLimit(props) {
                   label={t('邀请新用户奖励额度')}
                   field={'QuotaForInviter'}
                   step={1}
-                  min={0}
                   suffix={'Token'}
-                  extraText={''}
-                  placeholder={t('例如：2000')}
+                  extraText={t('支持负数以防止滥用邀请')}
+                  placeholder={t('例如：2000 或 -500')}
                   onChange={(value) =>
                     setInputs({
                       ...inputs,
@@ -154,10 +153,9 @@ export default function SettingsCreditLimit(props) {
                   label={t('新用户使用邀请码奖励额度')}
                   field={'QuotaForInvitee'}
                   step={1}
-                  min={0}
                   suffix={'Token'}
-                  extraText={''}
-                  placeholder={t('例如：1000')}
+                  extraText={t('支持负数以防止滥用邀请')}
+                  placeholder={t('例如：1000 或 -200')}
                   onChange={(value) =>
                     setInputs({
                       ...inputs,
